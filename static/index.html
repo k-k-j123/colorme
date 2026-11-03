@@ -1,0 +1,657 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ColorMe AI | Smart Wardrobe Stylist & Shopping Advisor</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Playfair+Display:ital,wght@0,600;0,700;1,600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+            serif: ['"Playfair Display"', 'serif'],
+          },
+          colors: {
+            luxury: {
+              50: '#FBF9F7',
+              100: '#F4EFEA',
+              200: '#E7DDD3',
+              300: '#D5C4B4',
+              400: '#BFA690',
+              500: '#A4846B',
+              600: '#896750',
+              700: '#6C4F3D',
+              800: '#4D382C',
+              900: '#2A1F18',
+              950: '#140E0B',
+            }
+          }
+        }
+      }
+    }
+  </script>
+</head>
+<body class="bg-[#F8F9FA] text-zinc-900 min-h-screen flex flex-col font-sans antialiased selection:bg-zinc-900 selection:text-white">
+
+  <!-- Top Announcement / Provider Bar -->
+  <header class="sticky top-0 z-40 bg-white/90 backdrop-blur-md border-b border-zinc-200">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+      
+      <!-- Brand Logo -->
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-zinc-900 text-white flex items-center justify-center shadow-sm">
+          <i data-lucide="sparkles" class="w-5 h-5 text-amber-300"></i>
+        </div>
+        <div>
+          <span class="font-serif text-2xl font-bold tracking-tight text-zinc-900">ColorMe</span>
+          <span class="text-xs font-semibold uppercase tracking-widest text-zinc-400 ml-1.5 px-2 py-0.5 bg-zinc-100 rounded-full">AI Stylist</span>
+        </div>
+      </div>
+
+      <!-- Actions & Provider Switcher -->
+      <div class="flex items-center gap-2 sm:gap-3">
+        <button id="btn-load-sample" class="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-zinc-700 bg-zinc-100 hover:bg-zinc-200 rounded-lg transition-colors">
+          <i data-lucide="sparkle" class="w-3.5 h-3.5 text-amber-600"></i>
+          Sample Wardrobe
+        </button>
+
+        <button id="btn-open-settings" class="inline-flex items-center gap-2 px-3.5 py-1.5 text-xs font-medium text-zinc-900 bg-zinc-100 hover:bg-zinc-200 border border-zinc-200/80 rounded-lg transition-all shadow-sm">
+          <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+          <span id="current-provider-badge">OpenAI (gpt-4o-mini)</span>
+          <i data-lucide="sliders-horizontal" class="w-3.5 h-3.5 text-zinc-500 ml-0.5"></i>
+        </button>
+      </div>
+
+    </div>
+  </header>
+
+  <!-- Main Container -->
+  <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-10">
+
+    <!-- Hero / Headline -->
+    <div class="text-center max-w-2xl mx-auto pt-2 pb-2">
+      <h1 class="font-serif text-3xl sm:text-4xl lg:text-5xl font-bold text-zinc-900 tracking-tight leading-tight">
+        Dress Better with What You Own.
+      </h1>
+      <p class="mt-3 text-sm sm:text-base text-zinc-600 font-normal">
+        Upload photos of your clothes. Our AI pairs them into bespoke outfits and reveals the exact missing pieces to buy to multiply your style.
+      </p>
+    </div>
+
+    <!-- Wardrobe Section -->
+    <section class="bg-white rounded-2xl border border-zinc-200/80 shadow-sm p-6 sm:p-8 space-y-6">
+      
+      <!-- Section Header -->
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-zinc-100">
+        <div>
+          <div class="flex items-center gap-2">
+            <h2 class="text-xl font-bold text-zinc-900">Your Wardrobe Collection</h2>
+            <span id="wardrobe-count-pill" class="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-zinc-100 text-zinc-700">0 items</span>
+          </div>
+          <p class="text-xs text-zinc-500 mt-0.5">Add shirts, jackets, pants, shoes, or accessories. Images are auto-compressed.</p>
+        </div>
+
+        <div class="flex items-center gap-2">
+          <button id="btn-select-all" class="text-xs font-medium px-3 py-1.5 rounded-md text-zinc-600 hover:text-zinc-900 hover:bg-zinc-100 transition-colors">
+            Select All
+          </button>
+          <button id="btn-clear-wardrobe" class="text-xs font-medium px-3 py-1.5 rounded-md text-rose-600 hover:bg-rose-50 transition-colors">
+            Clear All
+          </button>
+        </div>
+      </div>
+
+      <!-- Upload Drop Zone -->
+      <div id="drop-zone" class="border-2 border-dashed border-zinc-300 hover:border-zinc-500 hover:bg-zinc-50/50 rounded-xl p-8 text-center transition-all cursor-pointer relative group">
+        <input type="file" id="file-input" multiple accept="image/*" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10">
+        
+        <div class="flex flex-col items-center justify-center space-y-3 pointer-events-none">
+          <div class="w-12 h-12 rounded-full bg-zinc-100 group-hover:bg-zinc-200 text-zinc-700 flex items-center justify-center transition-transform group-hover:scale-105">
+            <i data-lucide="upload-cloud" class="w-6 h-6"></i>
+          </div>
+          <div>
+            <p class="text-sm font-semibold text-zinc-800">
+              Drop garment photos here, or <span class="text-zinc-900 underline underline-offset-2">browse files</span>
+            </p>
+            <p class="text-xs text-zinc-400 mt-1">Supports JPG, PNG, WEBP (Multiple files allowed)</p>
+          </div>
+          <div class="inline-flex items-center gap-3 pt-2 text-xs text-zinc-500">
+            <span>👕 Tops</span>
+            <span>•</span>
+            <span>👖 Bottoms</span>
+            <span>•</span>
+            <span>🧥 Outerwear</span>
+            <span>•</span>
+            <span>👟 Shoes</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Upload Progress Indicator -->
+      <div id="upload-progress-banner" class="hidden p-3.5 rounded-xl bg-zinc-900 text-white text-xs flex items-center justify-between shadow-md">
+        <div class="flex items-center gap-2.5">
+          <div class="w-4 h-4 rounded-full border-2 border-white/20 border-t-white animate-spin"></div>
+          <span id="upload-progress-text">Cataloging item with AI...</span>
+        </div>
+        <span class="text-[11px] text-zinc-400">Extracting colors, fit, & silhouette for future zero-image styling</span>
+      </div>
+
+      <!-- Wardrobe Items Grid -->
+      <div id="wardrobe-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
+        <!-- Rendered dynamically by JS -->
+      </div>
+
+      <!-- Empty State -->
+      <div id="wardrobe-empty-state" class="py-12 text-center space-y-3">
+        <div class="w-14 h-14 mx-auto rounded-full bg-zinc-50 text-zinc-300 flex items-center justify-center">
+          <i data-lucide="hanger" class="w-7 h-7"></i>
+        </div>
+        <div class="text-sm font-medium text-zinc-600">No clothes uploaded yet</div>
+        <p class="text-xs text-zinc-400 max-w-sm mx-auto">
+          Upload 2 to 8 items of your clothing to get started, or click below to test with curated sample pieces.
+        </p>
+        <button id="btn-load-sample-empty" class="inline-flex items-center gap-2 px-4 py-2 text-xs font-semibold text-zinc-900 bg-zinc-100 hover:bg-zinc-200 rounded-lg transition-colors">
+          <i data-lucide="sparkles" class="w-4 h-4 text-amber-500"></i>
+          Load 6 Sample Wardrobe Pieces
+        </button>
+      </div>
+
+    </section>
+
+    <!-- Consultation Preferences Section -->
+    <section class="bg-white rounded-2xl border border-zinc-200/80 shadow-sm p-6 sm:p-8 space-y-6">
+      
+      <div>
+        <h2 class="text-xl font-bold text-zinc-900">Styling Consultation Preferences</h2>
+        <p class="text-xs text-zinc-500 mt-0.5">Customize the occasion and vibe to tailor your outfit recommendations.</p>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        
+        <!-- Occasion Selector -->
+        <div class="space-y-2">
+          <label class="text-xs font-bold uppercase tracking-wider text-zinc-500">Target Occasion</label>
+          <div id="occasion-pills" class="flex flex-wrap gap-2">
+            <button type="button" class="pill active" data-val="Smart Casual">Smart Casual</button>
+            <button type="button" class="pill" data-val="Casual Everyday">Casual Everyday</button>
+            <button type="button" class="pill" data-val="Office / Work">Office / Work</button>
+            <button type="button" class="pill" data-val="Date Night / Dinner">Date Night / Dinner</button>
+            <button type="button" class="pill" data-val="Streetwear & Modern">Streetwear</button>
+            <button type="button" class="pill" data-val="Weekend Brunch">Weekend Brunch</button>
+            <button type="button" class="pill" data-val="Formal Event">Formal Event</button>
+          </div>
+        </div>
+
+        <!-- Weather / Season Selector -->
+        <div class="space-y-2">
+          <label class="text-xs font-bold uppercase tracking-wider text-zinc-500">Weather & Season</label>
+          <div id="season-pills" class="flex flex-wrap gap-2">
+            <button type="button" class="pill active" data-val="Mild / Spring-Fall">Mild (Spring / Fall)</button>
+            <button type="button" class="pill" data-val="Warm / Summer">Warm (Summer)</button>
+            <button type="button" class="pill" data-val="Cold / Winter">Cold (Winter)</button>
+            <button type="button" class="pill" data-val="Rainy / Layering">Rainy / Layering</button>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Specific Style Notes -->
+      <div class="space-y-2">
+        <label for="vibe-notes" class="text-xs font-bold uppercase tracking-wider text-zinc-500">
+          Personal Style Notes or Goals (Optional)
+        </label>
+        <input 
+          type="text" 
+          id="vibe-notes" 
+          placeholder="e.g. 'I want to wear my navy blazer', 'Prefer relaxed oversized fit', 'Meeting colleagues for rooftop drinks'..."
+          class="w-full px-4 py-2.5 text-sm bg-zinc-50 border border-zinc-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-zinc-900 focus:border-transparent transition-all"
+        />
+      </div>
+
+      <!-- Submit Action Button -->
+      <div class="pt-2">
+        <button 
+          id="btn-generate-style"
+          class="w-full py-4 px-6 rounded-xl bg-zinc-900 hover:bg-black text-white font-semibold text-base shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed group"
+        >
+          <i data-lucide="sparkles" class="w-5 h-5 text-amber-300 group-hover:rotate-12 transition-transform"></i>
+          <span>Generate Outfits & Shopping Guide</span>
+          <i data-lucide="arrow-right" class="w-4 h-4 ml-1"></i>
+        </button>
+      </div>
+
+    </section>
+
+    <!-- Loading State Skeleton -->
+    <div id="loading-state" class="hidden py-16 text-center space-y-4">
+      <div class="relative w-16 h-16 mx-auto">
+        <div class="w-16 h-16 rounded-full border-4 border-zinc-200 border-t-zinc-900 animate-spin"></div>
+        <div class="absolute inset-0 flex items-center justify-center">
+          <i data-lucide="shirt" class="w-6 h-6 text-zinc-700 animate-pulse"></i>
+        </div>
+      </div>
+      <h3 class="text-lg font-bold text-zinc-800">Consulting Your AI Stylist...</h3>
+      <p class="text-xs text-zinc-500 max-w-sm mx-auto">
+        Analyzing color harmony, silhouettes, occasion etiquette, and identifying high-impact wardrobe gaps.
+      </p>
+    </div>
+
+    <!-- Results Section -->
+    <section id="results-section" class="hidden space-y-6">
+
+      <!-- Notice for Demo / Preview Mode -->
+      <div id="demo-notice" class="hidden p-4 rounded-xl bg-amber-50 border border-amber-200 text-amber-900 text-xs sm:text-sm flex items-start gap-3">
+        <i data-lucide="info" class="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5"></i>
+        <div class="space-y-1">
+          <p class="font-semibold">Showing Demo Stylist Results</p>
+          <p class="text-amber-800">
+            To run live AI analysis on your uploaded images, enter your OpenAI, OpenRouter, or Groq API key in 
+            <button class="underline font-semibold" onclick="document.getElementById('btn-open-settings').click()">Settings</button>.
+          </p>
+        </div>
+      </div>
+
+      <!-- Results Header & Tabs -->
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-zinc-200">
+        <div>
+          <h2 class="text-2xl font-serif font-bold text-zinc-900">Your Tailored Style Guide</h2>
+          <p class="text-xs text-zinc-500 mt-0.5">Curated combinations from your wardrobe & strategic additions</p>
+        </div>
+
+        <div class="flex items-center gap-1 p-1 bg-zinc-200/70 rounded-xl">
+          <button id="tab-outfits" class="tab-btn active" data-tab="outfits">
+            <i data-lucide="layers" class="w-3.5 h-3.5"></i>
+            <span>Outfits</span>
+          </button>
+          <button id="tab-buying" class="tab-btn" data-tab="buying">
+            <i data-lucide="shopping-bag" class="w-3.5 h-3.5"></i>
+            <span>What to Buy</span>
+          </button>
+          <button id="tab-audit" class="tab-btn" data-tab="audit">
+            <i data-lucide="pie-chart" class="w-3.5 h-3.5"></i>
+            <span>Wardrobe Audit</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Tab Content: Outfits -->
+      <div id="content-outfits" class="tab-content active space-y-6">
+        <div id="outfits-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <!-- Rendered dynamically -->
+        </div>
+      </div>
+
+      <!-- Tab Content: What to Buy -->
+      <div id="content-buying" class="tab-content space-y-6">
+        <div class="p-4 rounded-xl bg-zinc-100 text-zinc-700 text-xs sm:text-sm flex items-center justify-between">
+          <div>
+            <span class="font-bold text-zinc-900">Wardrobe Multipliers:</span>
+            These missing staple pieces are curated specifically to pair with your existing clothes and unlock maximum new looks.
+          </div>
+        </div>
+        <div id="buying-container" class="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <!-- Rendered dynamically -->
+        </div>
+      </div>
+
+      <!-- Tab Content: Wardrobe Audit -->
+      <div id="content-audit" class="tab-content space-y-6">
+        <div class="bg-white rounded-2xl border border-zinc-200 p-6 sm:p-8 space-y-6">
+          
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <!-- Versatility Score -->
+            <div class="p-6 rounded-xl bg-zinc-50 border border-zinc-200 flex flex-col items-center justify-center text-center">
+              <span class="text-xs uppercase font-bold tracking-wider text-zinc-400">Versatility Score</span>
+              <div id="audit-score" class="font-serif text-5xl font-bold text-zinc-900 my-2">--</div>
+              <span class="text-xs text-zinc-500">Based on color balance & layering potential</span>
+            </div>
+
+            <!-- Aesthetic Vibe -->
+            <div class="md:col-span-2 p-6 rounded-xl bg-zinc-50 border border-zinc-200 flex flex-col justify-center">
+              <span class="text-xs uppercase font-bold tracking-wider text-zinc-400">Style Aesthetic</span>
+              <div id="audit-aesthetic" class="text-xl font-bold text-zinc-900 mt-1 mb-2">--</div>
+              <p id="audit-summary" class="text-xs text-zinc-600 leading-relaxed"></p>
+            </div>
+          </div>
+
+          <!-- Color Palette -->
+          <div class="space-y-3 pt-4 border-t border-zinc-100">
+            <h4 class="text-xs font-bold uppercase tracking-wider text-zinc-500">Identified Palette</h4>
+            <div id="audit-palette" class="flex flex-wrap gap-3">
+              <!-- Rendered dynamically -->
+            </div>
+          </div>
+
+          <!-- Wardrobe Strengths -->
+          <div class="space-y-3 pt-4 border-t border-zinc-100">
+            <h4 class="text-xs font-bold uppercase tracking-wider text-zinc-500">Wardrobe Highlights</h4>
+            <ul id="audit-strengths" class="space-y-2 text-xs text-zinc-700">
+              <!-- Rendered dynamically -->
+            </ul>
+          </div>
+
+        </div>
+      </div>
+
+    </section>
+
+  </main>
+
+  <!-- Provider Settings Modal -->
+  <div id="settings-modal" class="hidden fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-white w-full max-w-lg rounded-2xl shadow-2xl border border-zinc-200 overflow-hidden transform transition-all">
+      
+      <!-- Modal Header -->
+      <div class="px-6 py-4 border-b border-zinc-200 flex items-center justify-between">
+        <div class="flex items-center gap-2.5">
+          <div class="w-8 h-8 rounded-lg bg-zinc-100 text-zinc-900 flex items-center justify-center">
+            <i data-lucide="sliders-horizontal" class="w-4 h-4"></i>
+          </div>
+          <div>
+            <h3 class="font-bold text-base text-zinc-900">AI Provider Settings</h3>
+            <p class="text-xs text-zinc-500">Flexible OpenAI-compatible vision endpoints</p>
+          </div>
+        </div>
+        <button id="btn-close-settings" class="text-zinc-400 hover:text-zinc-700 p-1 rounded-lg hover:bg-zinc-100 transition-colors">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <!-- Modal Body -->
+      <div class="p-6 space-y-4">
+        
+        <!-- Preset Dropdown -->
+        <div class="space-y-1.5">
+          <label class="text-xs font-bold text-zinc-700 uppercase tracking-wide">Provider Preset</label>
+          <select id="setting-provider-preset" class="w-full px-3.5 py-2.5 text-sm bg-zinc-50 border border-zinc-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-zinc-900">
+            <option value="gemini">Google AI Studio (Gemini 2.0 Flash, 1.5 Pro)</option>
+            <option value="openai">OpenAI (GPT-4o, GPT-4o-mini)</option>
+            <option value="openrouter">OpenRouter (Gemini, Llama, Claude)</option>
+            <option value="groq">Groq (Llama 3.2 Vision Preview)</option>
+            <option value="together">Together AI (Llama Vision)</option>
+            <option value="ollama">Ollama (Local / Self-hosted)</option>
+            <option value="custom">Custom OpenAI-Compatible Endpoint</option>
+          </select>
+          <p id="preset-description" class="text-xs text-zinc-500"></p>
+        </div>
+
+        <!-- Base URL -->
+        <div class="space-y-1.5">
+          <label class="text-xs font-bold text-zinc-700 uppercase tracking-wide">Base URL</label>
+          <input 
+            type="text" 
+            id="setting-base-url" 
+            placeholder="https://api.openai.com/v1"
+            class="w-full px-3.5 py-2 text-sm bg-zinc-50 border border-zinc-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-zinc-900 font-mono text-xs"
+          />
+        </div>
+
+        <!-- Model Name -->
+        <div class="space-y-1.5">
+          <label class="text-xs font-bold text-zinc-700 uppercase tracking-wide">Vision Model Name</label>
+          <input 
+            type="text" 
+            id="setting-model" 
+            placeholder="gpt-4o-mini"
+            class="w-full px-3.5 py-2 text-sm bg-zinc-50 border border-zinc-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-zinc-900 font-mono text-xs"
+          />
+          <div id="recommended-models-container" class="flex flex-wrap gap-1.5 pt-1"></div>
+        </div>
+
+        <!-- API Key -->
+        <div class="space-y-1.5">
+          <div class="flex items-center justify-between">
+            <label class="text-xs font-bold text-zinc-700 uppercase tracking-wide">API Key</label>
+            <a id="setting-key-doc" href="#" target="_blank" class="text-xs text-zinc-500 hover:text-zinc-900 underline">Get Key</a>
+          </div>
+          <div class="relative">
+            <input 
+              type="password" 
+              id="setting-api-key" 
+              placeholder="sk-..."
+              class="w-full px-3.5 py-2 pr-10 text-sm bg-zinc-50 border border-zinc-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-zinc-900 font-mono text-xs"
+            />
+            <button type="button" id="toggle-key-visibility" class="absolute right-3 top-2.5 text-zinc-400 hover:text-zinc-700">
+              <i data-lucide="eye" class="w-4 h-4"></i>
+            </button>
+          </div>
+          <p class="text-xs text-zinc-400">Stored locally in your browser. Never shared or logged.</p>
+        </div>
+
+        <!-- Connection Test Response -->
+        <div id="test-connection-result" class="hidden p-3 rounded-lg text-xs"></div>
+
+      </div>
+
+      <!-- Modal Footer -->
+      <div class="px-6 py-4 bg-zinc-50 border-t border-zinc-200 flex items-center justify-between">
+        <button id="btn-test-connection" class="px-3.5 py-2 text-xs font-semibold text-zinc-700 bg-white border border-zinc-200 hover:bg-zinc-100 rounded-xl transition-colors inline-flex items-center gap-1.5">
+          <i data-lucide="activity" class="w-3.5 h-3.5"></i>
+          Test Connection
+        </button>
+
+        <div class="flex items-center gap-2">
+          <button id="btn-cancel-settings" class="px-4 py-2 text-xs font-medium text-zinc-600 hover:text-zinc-900 rounded-xl">
+            Cancel
+          </button>
+          <button id="btn-save-settings" class="px-4 py-2 text-xs font-semibold text-white bg-zinc-900 hover:bg-black rounded-xl shadow-sm transition-colors">
+            Save Changes
+          </button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Item Edit Modal -->
+  <div id="edit-item-modal" class="hidden fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-white w-full max-w-2xl max-h-[90vh] rounded-2xl shadow-2xl border border-zinc-200 flex flex-col overflow-hidden">
+      
+      <!-- Modal Header -->
+      <div class="px-6 py-4 border-b border-zinc-200 flex items-center justify-between">
+        <div class="flex items-center gap-2.5">
+          <div class="w-8 h-8 rounded-lg bg-zinc-900 text-white flex items-center justify-center shadow-xs">
+            <i data-lucide="palette" class="w-4 h-4 text-amber-300"></i>
+          </div>
+          <div>
+            <h3 class="font-bold text-base text-zinc-900">Edit Garment Attributes</h3>
+            <p class="text-xs text-zinc-500">Fine-tune AI-detected colors, materials, and silhouette</p>
+          </div>
+        </div>
+        <button id="btn-close-edit-item" class="text-zinc-400 hover:text-zinc-700 p-1 rounded-lg hover:bg-zinc-100 transition-colors">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <!-- Modal Body (Scrollable) -->
+      <div class="p-6 overflow-y-auto space-y-6 flex-1">
+        
+        <input type="hidden" id="edit-item-id">
+
+        <!-- Top Overview: Preview image + Name & Category -->
+        <div class="flex flex-col sm:flex-row gap-4 items-start sm:items-center p-3 rounded-xl bg-zinc-50 border border-zinc-200/80">
+          <div class="w-16 h-16 rounded-lg bg-white border border-zinc-200 flex-shrink-0 flex items-center justify-center overflow-hidden p-1">
+            <img id="edit-item-img-preview" src="" alt="Garment" class="w-full h-full object-contain">
+          </div>
+          <div class="flex-1 w-full space-y-2">
+            <div>
+              <label class="text-[10px] font-bold uppercase tracking-wider text-zinc-500">Garment Name</label>
+              <input type="text" id="edit-item-name" class="w-full px-3 py-1.5 text-sm bg-white border border-zinc-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-zinc-900 font-semibold text-zinc-900">
+            </div>
+          </div>
+        </div>
+
+        <!-- HIGHLIGHTED SECTION: Color & Palette Customization -->
+        <div class="p-4 rounded-xl bg-amber-50/50 border border-amber-200/70 space-y-4">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-1.5">
+              <i data-lucide="droplet" class="w-4 h-4 text-amber-600"></i>
+              <span class="text-xs font-bold uppercase tracking-wider text-amber-900">Color Attributes (AI Detected)</span>
+            </div>
+            <span class="text-[11px] text-amber-700 font-medium">Used in color harmony styling</span>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            
+            <!-- Color Picker & Hex -->
+            <div>
+              <label class="text-[10px] font-bold uppercase tracking-wider text-zinc-600 block mb-1">Color Swatch & Hex</label>
+              <div class="flex items-center gap-2">
+                <input type="color" id="edit-item-color-picker" class="w-9 h-9 rounded-lg border border-zinc-300 cursor-pointer p-0.5 bg-white">
+                <input type="text" id="edit-item-color-hex" placeholder="#FFFFFF" class="w-full px-2.5 py-1.5 text-xs font-mono bg-white border border-zinc-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-zinc-900">
+              </div>
+            </div>
+
+            <!-- Primary Color Name -->
+            <div>
+              <label class="text-[10px] font-bold uppercase tracking-wider text-zinc-600 block mb-1">Primary Color Name</label>
+              <input type="text" id="edit-item-color-primary" placeholder="e.g. Olive Green, Navy, Camel" class="w-full px-3 py-1.5 text-xs bg-white border border-zinc-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-zinc-900">
+            </div>
+
+            <!-- Secondary / Accent Color -->
+            <div>
+              <label class="text-[10px] font-bold uppercase tracking-wider text-zinc-600 block mb-1">Secondary / Accent Color</label>
+              <input type="text" id="edit-item-color-secondary" placeholder="e.g. Gold hardware, White trim" class="w-full px-3 py-1.5 text-xs bg-white border border-zinc-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-zinc-900">
+            </div>
+
+          </div>
+
+          <!-- Quick Palette Presets -->
+          <div class="pt-1">
+            <span class="text-[10px] font-semibold text-zinc-500 block mb-1.5">Quick Palette Presets:</span>
+            <div id="quick-color-presets" class="flex flex-wrap gap-1.5">
+              <!-- Rendered dynamically -->
+            </div>
+          </div>
+        </div>
+
+        <!-- Classification: Category, Sub-Category, Pattern -->
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          
+          <div class="space-y-1">
+            <label class="text-[10px] font-bold uppercase tracking-wider text-zinc-600">Primary Category</label>
+            <select id="edit-item-category" class="w-full px-3 py-2 text-xs bg-zinc-50 border border-zinc-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-zinc-900">
+              <option value="Tops">Tops</option>
+              <option value="Bottoms">Bottoms</option>
+              <option value="Outerwear">Outerwear</option>
+              <option value="Footwear">Footwear</option>
+              <option value="Accessories">Accessories</option>
+              <option value="Full Body">Full Body</option>
+            </select>
+          </div>
+
+          <div class="space-y-1">
+            <label class="text-[10px] font-bold uppercase tracking-wider text-zinc-600">Sub-Category / Type</label>
+            <input type="text" id="edit-item-sub-category" placeholder="e.g. Oxford Button-Down, Tapered Chinos" class="w-full px-3 py-2 text-xs bg-zinc-50 border border-zinc-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-zinc-900">
+          </div>
+
+          <div class="space-y-1">
+            <label class="text-[10px] font-bold uppercase tracking-wider text-zinc-600">Pattern</label>
+            <select id="edit-item-pattern" class="w-full px-3 py-2 text-xs bg-zinc-50 border border-zinc-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-zinc-900">
+              <option value="Solid">Solid</option>
+              <option value="Striped">Striped</option>
+              <option value="Plaid / Checked">Plaid / Checked</option>
+              <option value="Textured / Knit">Textured / Knit</option>
+              <option value="Floral">Floral</option>
+              <option value="Graphic / Print">Graphic / Print</option>
+            </select>
+          </div>
+
+        </div>
+
+        <!-- Material, Fit & Formality -->
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          
+          <div class="space-y-1">
+            <label class="text-[10px] font-bold uppercase tracking-wider text-zinc-600">Material & Texture</label>
+            <input type="text" id="edit-item-material" placeholder="e.g. 100% Linen, Heavy twill denim" class="w-full px-3 py-2 text-xs bg-zinc-50 border border-zinc-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-zinc-900">
+          </div>
+
+          <div class="space-y-1">
+            <label class="text-[10px] font-bold uppercase tracking-wider text-zinc-600">Fit & Silhouette</label>
+            <input type="text" id="edit-item-fit" placeholder="e.g. Slim tapered, Oversized boxy" class="w-full px-3 py-2 text-xs bg-zinc-50 border border-zinc-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-zinc-900">
+          </div>
+
+          <div class="space-y-1">
+            <label class="text-[10px] font-bold uppercase tracking-wider text-zinc-600">Formality Level</label>
+            <select id="edit-item-formality" class="w-full px-3 py-2 text-xs bg-zinc-50 border border-zinc-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-zinc-900">
+              <option value="Casual">Casual</option>
+              <option value="Smart Casual">Smart Casual</option>
+              <option value="Business Casual">Business Casual</option>
+              <option value="Formal">Formal</option>
+            </select>
+          </div>
+
+        </div>
+
+        <!-- Style Vibes & Stylist Summary -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          
+          <div class="space-y-1">
+            <label class="text-[10px] font-bold uppercase tracking-wider text-zinc-600">Style Vibes (Comma-separated)</label>
+            <input type="text" id="edit-item-vibes" placeholder="e.g. Minimalist, Streetwear, Old Money" class="w-full px-3 py-2 text-xs bg-zinc-50 border border-zinc-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-zinc-900">
+          </div>
+
+          <div class="space-y-1">
+            <label class="text-[10px] font-bold uppercase tracking-wider text-zinc-600">Key Features</label>
+            <input type="text" id="edit-item-features" placeholder="e.g. Band collar, Chest pocket, Cuffed hem" class="w-full px-3 py-2 text-xs bg-zinc-50 border border-zinc-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-zinc-900">
+          </div>
+
+        </div>
+
+        <div class="space-y-1">
+          <label class="text-[10px] font-bold uppercase tracking-wider text-zinc-600">Stylist Notes / Description</label>
+          <textarea id="edit-item-description" rows="2" placeholder="Brief stylist description of the piece..." class="w-full px-3 py-2 text-xs bg-zinc-50 border border-zinc-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-zinc-900"></textarea>
+        </div>
+
+      </div>
+
+      <!-- Modal Footer -->
+      <div class="px-6 py-4 bg-zinc-50 border-t border-zinc-200 flex items-center justify-between">
+        <button id="btn-reanalyze-item" type="button" class="px-3.5 py-2 text-xs font-semibold text-zinc-700 bg-white border border-zinc-200 hover:bg-zinc-100 rounded-xl transition-colors inline-flex items-center gap-1.5">
+          <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i>
+          Re-Analyze with AI
+        </button>
+
+        <div class="flex items-center gap-2">
+          <button id="btn-cancel-edit-item" class="px-4 py-2 text-xs font-medium text-zinc-600 hover:text-zinc-900 rounded-xl">
+            Cancel
+          </button>
+          <button id="btn-save-edit-item" class="px-4 py-2 text-xs font-semibold text-white bg-zinc-900 hover:bg-black rounded-xl shadow-sm transition-colors flex items-center gap-1.5">
+            <i data-lucide="check" class="w-4 h-4"></i>
+            Save Changes
+          </button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer class="mt-auto border-t border-zinc-200 bg-white py-6">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-zinc-500">
+      <div>
+        <span class="font-semibold text-zinc-800">ColorMe AI Stylist</span> • Built for flexible OpenAI, OpenRouter, Groq & Ollama endpoints.
+      </div>
+      <div class="flex items-center gap-4">
+        <span>100% Client-Configurable</span>
+        <span>•</span>
+        <span>Multimodal Vision Ready</span>
+      </div>
+    </div>
+  </footer>
+
+  <script src="js/app.js"></script>
+</body>
+</html>
+

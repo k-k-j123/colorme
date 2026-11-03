@@ -1,0 +1,95 @@
+/* Custom styling enhancements for ColorMe */
+
+/* Pill buttons for Occasion & Season */
+.pill {
+  padding: 0.5rem 1rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  border: 1px solid #E4E4E7;
+  background-color: #FAFAFA;
+  color: #52525B;
+  transition: all 0.15s ease-in-out;
+  cursor: pointer;
+  user-select: none;
+}
+
+.pill:hover {
+  background-color: #F4F4F5;
+  color: #18181B;
+  border-color: #D4D4D8;
+}
+
+.pill.active {
+  background-color: #18181B;
+  color: #FFFFFF;
+  border-color: #18181B;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+}
+
+/* Tab buttons */
+.tab-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  border-radius: 0.5rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #52525B;
+  transition: all 0.15s ease-in-out;
+}
+
+.tab-btn:hover {
+  color: #18181B;
+}
+
+.tab-btn.active {
+  background-color: #FFFFFF;
+  color: #18181B;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+}
+
+/* Tab content visibility */
+.tab-content {
+  display: none;
+}
+
+.tab-content.active {
+  display: block;
+}
+
+/* Card hover animation */
+.garment-card {
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.garment-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -4px rgba(0, 0, 0, 0.05);
+}
+
+/* Category badge colors */
+.badge-tops { background-color: #EFF6FF; color: #1D4ED8; border-color: #BFDBFE; }
+.badge-bottoms { background-color: #F0FDF4; color: #15803D; border-color: #BBF7D0; }
+.badge-outerwear { background-color: #F5F3FF; color: #6D28D9; border-color: #DDD6FE; }
+.badge-footwear { background-color: #FFF7ED; color: #C2410C; border-color: #FED7AA; }
+.badge-accessories { background-color: #FDF2F8; color: #BE185D; border-color: #FBCFE8; }
+.badge-default { background-color: #F4F4F5; color: #3F3F46; border-color: #E4E4E7; }
+
+/* Custom clean scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #D4D4D8;
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #A1A1AA;
+}
+
